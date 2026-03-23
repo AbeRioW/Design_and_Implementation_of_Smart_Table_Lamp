@@ -68,6 +68,9 @@ const uint32_t brightness_values[] = {0, 333, 666, 1000}; // 0: auto, 1: 33%, 2:
 
 // Time setting variables
 volatile uint8_t time_setting_mode = 0; // 0: normal mode, 1: time setting mode
+
+// Ultrasonic threshold variable
+volatile uint8_t ultrasonic_threshold = 5; // Default value (0-10)
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -86,8 +89,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     {
         if(key1_debounce == 0)
         {
-            // KEY1 pressed: enter time setting mode
-            time_setting_mode = 1;
+            if(time_setting_mode == 0)
+            {
+                // KEY1 pressed: enter time setting mode
+                time_setting_mode = 1;
+            }
+            else
+            {
+                // KEY1 pressed in setting mode: decrease current setting value
+                key1_pressed = 1;
+            }
             
             // Set debounce time
             key1_debounce = DEBOUNCE_TIME;
@@ -388,70 +399,177 @@ void TimeSettingInterface(void)
     DS1302_Time setting_time;
     DS1302_GetTime(&setting_time);
     
-    // Current setting item (0: year, 1: month, 2: date, 3: hour, 4: minute, 5: second, 6: exit)
+    // Use global ultrasonic threshold variable
+    
+    // Current setting item (0: year, 1: month, 2: date, 3: hour, 4: minute, 5: second, 6: ultrasonic threshold, 7: exit)
     uint8_t current_item = 0;
+    uint8_t previous_item = 0;
     uint8_t setting_active = 1;
+    
+    // Clear OLED display once at the beginning
+    OLED_Clear();
+    
+    // Display static labels once
+    OLED_ShowString(0, 0, (uint8_t*)"Year:", 8, 1);
+    OLED_ShowString(0, 8, (uint8_t*)"Month:", 8, 1);
+    OLED_ShowString(0, 16, (uint8_t*)"Date:", 8, 1);
+    OLED_ShowString(0, 24, (uint8_t*)"Hour:", 8, 1);
+    OLED_ShowString(0, 32, (uint8_t*)"Minute:", 8, 1);
+    OLED_ShowString(0, 40, (uint8_t*)"Second:", 8, 1);
+    OLED_ShowString(0, 48, (uint8_t*)"Threshold:", 8, 1);
+    OLED_ShowString(0, 56, (uint8_t*)"Exit", 8, 1);
+    
+    // Initial display of values
+    OLED_ShowNum(40, 0, 2000 + setting_time.year, 4, 8, 1);
+    OLED_ShowNum(48, 8, setting_time.month, 2, 8, 1);
+    OLED_ShowNum(40, 16, setting_time.date, 2, 8, 1);
+    OLED_ShowNum(40, 24, setting_time.hour, 2, 8, 1);
+    OLED_ShowNum(56, 32, setting_time.minute, 2, 8, 1);
+    OLED_ShowNum(56, 40, setting_time.second, 2, 8, 1);
+    OLED_ShowNum(72, 48, ultrasonic_threshold, 2, 8, 1);
+    
+    // Show initial highlight
+    OLED_ShowString(110, 0, (uint8_t*)">", 8, 1);
+    OLED_Refresh();
     
     while(setting_active)
     {
-        // Clear OLED display
-        OLED_Clear();
-        
-        // Display setting title
-        OLED_ShowString(0, 0, (uint8_t*)"Time Setting", 8, 1);
-        
-        // Display current setting values
-        OLED_ShowString(0, 16, (uint8_t*)"Year:", 8, 1);
-        OLED_ShowNum(40, 16, 2000 + setting_time.year, 4, 8, 1);
-        
-        OLED_ShowString(0, 24, (uint8_t*)"Month:", 8, 1);
-        OLED_ShowNum(48, 24, setting_time.month, 2, 8, 1);
-        
-        OLED_ShowString(0, 32, (uint8_t*)"Date:", 8, 1);
-        OLED_ShowNum(40, 32, setting_time.date, 2, 8, 1);
-        
-        OLED_ShowString(0, 40, (uint8_t*)"Hour:", 8, 1);
-        OLED_ShowNum(40, 40, setting_time.hour, 2, 8, 1);
-        
-        OLED_ShowString(0, 48, (uint8_t*)"Minute:", 8, 1);
-        OLED_ShowNum(56, 48, setting_time.minute, 2, 8, 1);
-        
-        OLED_ShowString(0, 56, (uint8_t*)"Second:", 8, 1);
-        OLED_ShowNum(56, 56, setting_time.second, 2, 8, 1);
-        
-        // Display exit option
-        OLED_ShowString(0, 64, (uint8_t*)"7. Exit", 8, 1);
-        
-        // Highlight current setting item
-        switch(current_item)
+        // Clear previous highlight if item has changed
+        if(current_item != previous_item)
         {
-            case 0: // Year
-                OLED_ShowString(110, 16, (uint8_t*)">", 8, 1);
-                break;
-            case 1: // Month
-                OLED_ShowString(110, 24, (uint8_t*)">", 8, 1);
-                break;
-            case 2: // Date
-                OLED_ShowString(110, 32, (uint8_t*)">", 8, 1);
-                break;
-            case 3: // Hour
-                OLED_ShowString(110, 40, (uint8_t*)">", 8, 1);
-                break;
-            case 4: // Minute
-                OLED_ShowString(110, 48, (uint8_t*)">", 8, 1);
-                break;
-            case 5: // Second
-                OLED_ShowString(110, 56, (uint8_t*)">", 8, 1);
-                break;
-            case 6: // Exit
-                OLED_ShowString(110, 64, (uint8_t*)">", 8, 1);
-                break;
+            // Clear previous highlight by displaying space
+            switch(previous_item)
+            {
+                case 0: // Year
+                    OLED_ShowString(110, 0, (uint8_t*)" ", 8, 1);
+                    break;
+                case 1: // Month
+                    OLED_ShowString(110, 8, (uint8_t*)" ", 8, 1);
+                    break;
+                case 2: // Date
+                    OLED_ShowString(110, 16, (uint8_t*)" ", 8, 1);
+                    break;
+                case 3: // Hour
+                    OLED_ShowString(110, 24, (uint8_t*)" ", 8, 1);
+                    break;
+                case 4: // Minute
+                    OLED_ShowString(110, 32, (uint8_t*)" ", 8, 1);
+                    break;
+                case 5: // Second
+                    OLED_ShowString(110, 40, (uint8_t*)" ", 8, 1);
+                    break;
+                case 6: // Ultrasonic threshold
+                    OLED_ShowString(110, 48, (uint8_t*)" ", 8, 1);
+                    break;
+                case 7: // Exit
+                    OLED_ShowString(110, 56, (uint8_t*)" ", 8, 1);
+                    break;
+            }
+            
+            // Show current highlight
+            switch(current_item)
+            {
+                case 0: // Year
+                    OLED_ShowString(110, 0, (uint8_t*)">", 8, 1);
+                    break;
+                case 1: // Month
+                    OLED_ShowString(110, 8, (uint8_t*)">", 8, 1);
+                    break;
+                case 2: // Date
+                    OLED_ShowString(110, 16, (uint8_t*)">", 8, 1);
+                    break;
+                case 3: // Hour
+                    OLED_ShowString(110, 24, (uint8_t*)">", 8, 1);
+                    break;
+                case 4: // Minute
+                    OLED_ShowString(110, 32, (uint8_t*)">", 8, 1);
+                    break;
+                case 5: // Second
+                    OLED_ShowString(110, 40, (uint8_t*)">", 8, 1);
+                    break;
+                case 6: // Ultrasonic threshold
+                    OLED_ShowString(110, 48, (uint8_t*)">", 8, 1);
+                    break;
+                case 7: // Exit
+                    OLED_ShowString(110, 56, (uint8_t*)">", 8, 1);
+                    break;
+            }
+            
+            // Update previous item
+            previous_item = current_item;
+            
+            // Refresh display after highlight change
+            OLED_Refresh();
         }
         
-        // Refresh OLED display
+        // Update values if they have changed
+        OLED_ShowNum(40, 0, 2000 + setting_time.year, 4, 8, 1);
+        OLED_ShowNum(48, 8, setting_time.month, 2, 8, 1);
+        OLED_ShowNum(40, 16, setting_time.date, 2, 8, 1);
+        OLED_ShowNum(40, 24, setting_time.hour, 2, 8, 1);
+        OLED_ShowNum(56, 32, setting_time.minute, 2, 8, 1);
+        OLED_ShowNum(56, 40, setting_time.second, 2, 8, 1);
+        OLED_ShowNum(72, 48, ultrasonic_threshold, 2, 8, 1);
+        
+        // Refresh display for value updates
         OLED_Refresh();
         
+        // Add a small delay to reduce flickering
+        delay_ms(50);
+        
         // Check for key presses
+        if(key1_pressed)
+        {
+            key1_pressed = 0;
+            
+            switch(current_item)
+            {
+                case 0: // Year
+                    setting_time.year--;
+                    if(setting_time.year < 0) setting_time.year = 99;
+                    break;
+                case 1: // Month
+                    setting_time.month--;
+                    if(setting_time.month < 1) setting_time.month = 12;
+                    break;
+                case 2: // Date
+                    setting_time.date--;
+                    if(setting_time.date < 1)
+                    {
+                        // Simple date validation (not perfect, but works for most cases)
+                        uint8_t max_days = 31;
+                        if(setting_time.month == 4 || setting_time.month == 6 || setting_time.month == 9 || setting_time.month == 11)
+                            max_days = 30;
+                        else if(setting_time.month == 2)
+                            max_days = 28; // Simplified, not considering leap years
+                        setting_time.date = max_days;
+                    }
+                    break;
+                case 3: // Hour
+                    setting_time.hour--;
+                    if(setting_time.hour < 0) setting_time.hour = 23;
+                    break;
+                case 4: // Minute
+                    setting_time.minute--;
+                    if(setting_time.minute < 0) setting_time.minute = 59;
+                    break;
+                case 5: // Second
+                    setting_time.second--;
+                    if(setting_time.second < 0) setting_time.second = 59;
+                    break;
+                case 6: // Ultrasonic threshold
+                    ultrasonic_threshold--;
+                    if(ultrasonic_threshold < 0) ultrasonic_threshold = 10;
+                    break;
+                case 7: // Exit
+                    // Save the settings
+                    DS1302_SetTime(&setting_time);
+                    setting_active = 0;
+                    time_setting_mode = 0;
+                    break;
+            }
+        }
+        
         if(key2_pressed)
         {
             key2_pressed = 0;
@@ -488,7 +606,11 @@ void TimeSettingInterface(void)
                     setting_time.second++;
                     if(setting_time.second > 59) setting_time.second = 0;
                     break;
-                case 6: // Exit
+                case 6: // Ultrasonic threshold
+                    ultrasonic_threshold++;
+                    if(ultrasonic_threshold > 10) ultrasonic_threshold = 0;
+                    break;
+                case 7: // Exit
                     // Save the settings
                     DS1302_SetTime(&setting_time);
                     setting_active = 0;
@@ -501,11 +623,11 @@ void TimeSettingInterface(void)
         {
             key3_pressed = 0;
             current_item++;
-            if(current_item > 6) current_item = 0;
+            if(current_item > 7) current_item = 0;
         }
         
-        // Small delay to avoid rapid changes
-        delay_ms(100);
+        // Small delay to avoid rapid changes (already added earlier)
+        // delay_ms(100);
     }
     
     // Clear display and return to normal mode
