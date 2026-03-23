@@ -236,8 +236,13 @@ void TIM1_UP_IRQHandler(void)
   }
   
   // Handle key debouncing
+  extern volatile uint16_t key1_debounce;
   extern volatile uint16_t key2_debounce;
   extern volatile uint16_t key3_debounce;
+  if(key1_debounce > 0)
+  {
+    key1_debounce--;
+  }
   if(key2_debounce > 0)
   {
     key2_debounce--;

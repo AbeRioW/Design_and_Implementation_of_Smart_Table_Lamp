@@ -57,18 +57,23 @@ extern volatile uint16_t timer1_counter;
 
 // Brightness control variables
 volatile uint8_t brightness_level = 0; // 0: auto, 1: low, 2: medium, 3: high
+volatile uint8_t key1_pressed = 0;
 volatile uint8_t key2_pressed = 0;
 volatile uint8_t key3_pressed = 0;
+volatile uint16_t key1_debounce = 0;
 volatile uint16_t key2_debounce = 0;
 volatile uint16_t key3_debounce = 0;
 const uint16_t DEBOUNCE_TIME = 200; // 200ms debounce time
 const uint32_t brightness_values[] = {0, 333, 666, 1000}; // 0: auto, 1: 33%, 2: 66%, 3: 100%
+
+// Time setting variables
+volatile uint8_t time_setting_mode = 0; // 0: normal mode, 1: time setting mode
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void TimeSettingInterface(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -77,21 +82,41 @@ void SystemClock_Config(void);
 // GPIO EXTI callback function
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    if(GPIO_Pin == KEY2_Pin)
+    if(GPIO_Pin == KEY1_Pin)
+    {
+        if(key1_debounce == 0)
+        {
+            // KEY1 pressed: enter time setting mode
+            time_setting_mode = 1;
+            
+            // Set debounce time
+            key1_debounce = DEBOUNCE_TIME;
+        }
+    }
+    else if(GPIO_Pin == KEY2_Pin)
     {
         if(key2_debounce == 0)
         {
-            // KEY2 pressed: cycle through brightness levels
-            brightness_level++;
-            if(brightness_level > 3)
+            // KEY2 pressed: cycle through brightness levels or adjust setting value
+            if(time_setting_mode == 0)
             {
-                brightness_level = 1; // Reset to low after high
+                // Normal mode: adjust brightness
+                brightness_level++;
+                if(brightness_level > 3)
+                {
+                    brightness_level = 1; // Reset to low after high
+                }
+                
+                // Set manual brightness
+                if(brightness_level > 0)
+                {
+                    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, brightness_values[brightness_level]);
+                }
             }
-            
-            // Set manual brightness
-            if(brightness_level > 0)
+            else
             {
-                __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, brightness_values[brightness_level]);
+                // Setting mode: increase current setting value
+                key2_pressed = 1;
             }
             
             // Set debounce time
@@ -102,8 +127,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     {
         if(key3_debounce == 0)
         {
-            // KEY3 pressed: return to auto mode
-            brightness_level = 0;
+            // KEY3 pressed: return to auto mode or switch setting item
+            if(time_setting_mode == 0)
+            {
+                // Normal mode: return to auto brightness
+                brightness_level = 0;
+            }
+            else
+            {
+                // Setting mode: switch to next setting item
+                key3_pressed = 1;
+            }
             
             // Set debounce time
             key3_debounce = DEBOUNCE_TIME;
@@ -221,6 +255,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    // Check if in time setting mode
+    if(time_setting_mode)
+    {
+        TimeSettingInterface();
+    }
+    else
+    {
 	printf("go\r\n");
     float distance = HC_SR04_MeasureDistance();
     if(distance >= 0)
@@ -287,6 +328,7 @@ int main(void)
     
     // 保持主循环运行，不使用delay_ms阻塞
     delay_ms(100);
+    }
   }
   /* USER CODE END 3 */
 }
@@ -338,6 +380,141 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+// Time setting interface function
+void TimeSettingInterface(void)
+{
+    // Time structure for setting
+    DS1302_Time setting_time;
+    DS1302_GetTime(&setting_time);
+    
+    // Current setting item (0: year, 1: month, 2: date, 3: hour, 4: minute, 5: second, 6: exit)
+    uint8_t current_item = 0;
+    uint8_t setting_active = 1;
+    
+    while(setting_active)
+    {
+        // Clear OLED display
+        OLED_Clear();
+        
+        // Display setting title
+        OLED_ShowString(0, 0, (uint8_t*)"Time Setting", 8, 1);
+        
+        // Display current setting values
+        OLED_ShowString(0, 16, (uint8_t*)"Year:", 8, 1);
+        OLED_ShowNum(40, 16, 2000 + setting_time.year, 4, 8, 1);
+        
+        OLED_ShowString(0, 24, (uint8_t*)"Month:", 8, 1);
+        OLED_ShowNum(48, 24, setting_time.month, 2, 8, 1);
+        
+        OLED_ShowString(0, 32, (uint8_t*)"Date:", 8, 1);
+        OLED_ShowNum(40, 32, setting_time.date, 2, 8, 1);
+        
+        OLED_ShowString(0, 40, (uint8_t*)"Hour:", 8, 1);
+        OLED_ShowNum(40, 40, setting_time.hour, 2, 8, 1);
+        
+        OLED_ShowString(0, 48, (uint8_t*)"Minute:", 8, 1);
+        OLED_ShowNum(56, 48, setting_time.minute, 2, 8, 1);
+        
+        OLED_ShowString(0, 56, (uint8_t*)"Second:", 8, 1);
+        OLED_ShowNum(56, 56, setting_time.second, 2, 8, 1);
+        
+        // Display exit option
+        OLED_ShowString(0, 64, (uint8_t*)"7. Exit", 8, 1);
+        
+        // Highlight current setting item
+        switch(current_item)
+        {
+            case 0: // Year
+                OLED_ShowString(110, 16, (uint8_t*)">", 8, 1);
+                break;
+            case 1: // Month
+                OLED_ShowString(110, 24, (uint8_t*)">", 8, 1);
+                break;
+            case 2: // Date
+                OLED_ShowString(110, 32, (uint8_t*)">", 8, 1);
+                break;
+            case 3: // Hour
+                OLED_ShowString(110, 40, (uint8_t*)">", 8, 1);
+                break;
+            case 4: // Minute
+                OLED_ShowString(110, 48, (uint8_t*)">", 8, 1);
+                break;
+            case 5: // Second
+                OLED_ShowString(110, 56, (uint8_t*)">", 8, 1);
+                break;
+            case 6: // Exit
+                OLED_ShowString(110, 64, (uint8_t*)">", 8, 1);
+                break;
+        }
+        
+        // Refresh OLED display
+        OLED_Refresh();
+        
+        // Check for key presses
+        if(key2_pressed)
+        {
+            key2_pressed = 0;
+            
+            switch(current_item)
+            {
+                case 0: // Year
+                    setting_time.year++;
+                    if(setting_time.year > 99) setting_time.year = 0;
+                    break;
+                case 1: // Month
+                    setting_time.month++;
+                    if(setting_time.month > 12) setting_time.month = 1;
+                    break;
+                case 2: // Date
+                    setting_time.date++;
+                    // Simple date validation (not perfect, but works for most cases)
+                    uint8_t max_days = 31;
+                    if(setting_time.month == 4 || setting_time.month == 6 || setting_time.month == 9 || setting_time.month == 11)
+                        max_days = 30;
+                    else if(setting_time.month == 2)
+                        max_days = 28; // Simplified, not considering leap years
+                    if(setting_time.date > max_days) setting_time.date = 1;
+                    break;
+                case 3: // Hour
+                    setting_time.hour++;
+                    if(setting_time.hour > 23) setting_time.hour = 0;
+                    break;
+                case 4: // Minute
+                    setting_time.minute++;
+                    if(setting_time.minute > 59) setting_time.minute = 0;
+                    break;
+                case 5: // Second
+                    setting_time.second++;
+                    if(setting_time.second > 59) setting_time.second = 0;
+                    break;
+                case 6: // Exit
+                    // Save the settings
+                    DS1302_SetTime(&setting_time);
+                    setting_active = 0;
+                    time_setting_mode = 0;
+                    break;
+            }
+        }
+        
+        if(key3_pressed)
+        {
+            key3_pressed = 0;
+            current_item++;
+            if(current_item > 6) current_item = 0;
+        }
+        
+        // Small delay to avoid rapid changes
+        delay_ms(100);
+    }
+    
+    // Clear display and return to normal mode
+    OLED_Clear();
+    OLED_ShowString(0,0,(uint8_t*)"Distance:",8,1);
+    OLED_ShowString(0,8,(uint8_t*)"Time:",8,1);
+    OLED_ShowString(0,16,(uint8_t*)"Date:",8,1);
+    OLED_Refresh();
+}
 
 /* USER CODE END 4 */
 
