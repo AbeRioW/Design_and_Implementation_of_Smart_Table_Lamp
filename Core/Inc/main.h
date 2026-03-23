@@ -61,6 +61,12 @@ void Error_Handler(void);
 #define OLED_SCL_GPIO_Port GPIOC
 #define OLED_SDA_Pin GPIO_PIN_14
 #define OLED_SDA_GPIO_Port GPIOC
+#define DS1302_RST_Pin GPIO_PIN_5
+#define DS1302_RST_GPIO_Port GPIOA
+#define DS1302_DAT_Pin GPIO_PIN_6
+#define DS1302_DAT_GPIO_Port GPIOA
+#define DS1302_CLK_Pin GPIO_PIN_7
+#define DS1302_CLK_GPIO_Port GPIOA
 #define HC_SR04_TRIG_Pin GPIO_PIN_8
 #define HC_SR04_TRIG_GPIO_Port GPIOB
 

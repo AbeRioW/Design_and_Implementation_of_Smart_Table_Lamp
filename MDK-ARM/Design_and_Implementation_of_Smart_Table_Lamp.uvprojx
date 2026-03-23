@@ -860,6 +860,11 @@
               <FileType>1</FileType>
               <FilePath>..\App\mqtt_publisher.c</FilePath>
             </File>
+            <File>
+              <FileName>ds1302.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\ds1302.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
