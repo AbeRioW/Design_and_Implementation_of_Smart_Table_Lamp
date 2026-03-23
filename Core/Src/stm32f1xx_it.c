@@ -234,6 +234,18 @@ void TIM1_UP_IRQHandler(void)
     timer1_counter = 0;
     timer1_second_flag = 1;
   }
+  
+  // Handle key debouncing
+  extern volatile uint16_t key2_debounce;
+  extern volatile uint16_t key3_debounce;
+  if(key2_debounce > 0)
+  {
+    key2_debounce--;
+  }
+  if(key3_debounce > 0)
+  {
+    key3_debounce--;
+  }
   /* USER CODE END TIM1_UP_IRQn 1 */
 }
 
@@ -280,6 +292,31 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 1 */
 
   /* USER CODE END USART1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  if(__HAL_GPIO_EXTI_GET_IT(KEY1_Pin))
+  {
+    HAL_GPIO_EXTI_IRQHandler(KEY1_Pin);
+  }
+  if(__HAL_GPIO_EXTI_GET_IT(KEY2_Pin))
+  {
+    HAL_GPIO_EXTI_IRQHandler(KEY2_Pin);
+  }
+  if(__HAL_GPIO_EXTI_GET_IT(KEY3_Pin))
+  {
+    HAL_GPIO_EXTI_IRQHandler(KEY3_Pin);
+  }
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

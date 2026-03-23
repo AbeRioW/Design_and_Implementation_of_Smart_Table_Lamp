@@ -54,6 +54,15 @@
 /* USER CODE BEGIN PV */
 extern volatile uint8_t timer1_second_flag;
 extern volatile uint16_t timer1_counter;
+
+// Brightness control variables
+volatile uint8_t brightness_level = 0; // 0: auto, 1: low, 2: medium, 3: high
+volatile uint8_t key2_pressed = 0;
+volatile uint8_t key3_pressed = 0;
+volatile uint16_t key2_debounce = 0;
+volatile uint16_t key3_debounce = 0;
+const uint16_t DEBOUNCE_TIME = 200; // 200ms debounce time
+const uint32_t brightness_values[] = {0, 333, 666, 1000}; // 0: auto, 1: 33%, 2: 66%, 3: 100%
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -64,6 +73,43 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// GPIO EXTI callback function
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if(GPIO_Pin == KEY2_Pin)
+    {
+        if(key2_debounce == 0)
+        {
+            // KEY2 pressed: cycle through brightness levels
+            brightness_level++;
+            if(brightness_level > 3)
+            {
+                brightness_level = 1; // Reset to low after high
+            }
+            
+            // Set manual brightness
+            if(brightness_level > 0)
+            {
+                __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, brightness_values[brightness_level]);
+            }
+            
+            // Set debounce time
+            key2_debounce = DEBOUNCE_TIME;
+        }
+    }
+    else if(GPIO_Pin == KEY3_Pin)
+    {
+        if(key3_debounce == 0)
+        {
+            // KEY3 pressed: return to auto mode
+            brightness_level = 0;
+            
+            // Set debounce time
+            key3_debounce = DEBOUNCE_TIME;
+        }
+    }
+}
 
 /* USER CODE END 0 */
 
@@ -115,16 +161,17 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   
   // 初始设置时间（2026-03-23 12:00:00）
-  DS1302_Time init_time;
-  init_time.year = 26;
-  init_time.month = 3;
-  init_time.date = 23;
-  init_time.day = 6; // 0=Sunday, 6=Saturday
-  init_time.hour = 12;
-  init_time.minute = 0;
-  init_time.second = 0;
-  DS1302_SetTime(&init_time);
+//  DS1302_Time init_time;
+//  init_time.year = 26;
+//  init_time.month = 3;
+//  init_time.date = 23;
+//  init_time.day = 6; // 0=Sunday, 6=Saturday
+//  init_time.hour = 12;
+//  init_time.minute = 0;
+//  init_time.second = 0;
+//  DS1302_SetTime(&init_time);
   
+	#if 0
   while (wifi_try < 5 && !ESP8266_ConnectWiFi())
   {
 		 printf("WiFi connect retry\r\n");
@@ -132,7 +179,8 @@ int main(void)
       HAL_Delay(1000);
   }
 	
-	
+				OLED_ShowString(0,0,(uint8_t*)"Cloud Connect...",8,1);
+			OLED_Refresh();
 	while(mqtt_try<20&&!ESP8266_ConnectCloud())
 	{
 		 printf("ConnectCloud retry\r\n");
@@ -157,8 +205,9 @@ int main(void)
 			OLED_Refresh();
 		  while(1);
 	}
+	#endif
 	
-	
+	OLED_Clear();
 	OLED_ShowString(0,0,(uint8_t*)"Distance:",8,1);
 	OLED_ShowString(0,8,(uint8_t*)"Time:",8,1);
 	OLED_ShowString(0,16,(uint8_t*)"Date:",8,1);
@@ -178,10 +227,10 @@ int main(void)
     {
         uint32_t int_part = (uint32_t)distance;
         uint32_t decimal_part = (uint32_t)((distance - int_part) * 100);
-        OLED_ShowNum(70,0,int_part,1,8,1);
-        OLED_ShowChar(78,0,'.',8,1);
-        OLED_ShowNum(86,0,decimal_part,2,8,1);
-        OLED_ShowString(94,0,(uint8_t*)"cm",8,1);
+        OLED_ShowNum(70,0,int_part,3,8,1);
+        OLED_ShowChar(94,0,'.',8,1);
+        OLED_ShowNum(102,0,decimal_part,2,8,1);
+        OLED_ShowString(110,0,(uint8_t*)"cm",8,1);
         
         // 刷新距离显示
         OLED_Refresh();
@@ -191,34 +240,25 @@ int main(void)
         //OLED_ShowString(70,0,(uint8_t*)"Err",8,1);
     }
     
-    // 读取ADC值（光照值）
-    HAL_ADC_Start(&hadc1);
-    if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+    // 读取ADC值（光照值）- 仅在自动模式下
+    if(brightness_level == 0)
     {
-        uint32_t adc_value = HAL_ADC_GetValue(&hadc1);
-        
-        // 根据光照值计算PWM占空比
-        // 光照值越大，LED越暗；光照值越小，LED越亮
-        uint32_t pwm_value = 1000 - (adc_value * 1000 / 4095);
-        if (pwm_value > 1000) pwm_value = 1000;
-        if (pwm_value < 0) pwm_value = 0;
-        
-        // 设置PWM占空比
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm_value);
-        
-        // 在OLED上显示光照值
-        OLED_ShowString(0,24,(uint8_t*)"Light:",8,1);
-        OLED_ShowNum(50,24,adc_value,4,8,1);
-        OLED_ShowString(90,24,(uint8_t*)"/4095",8,1);
-        
-        // 显示PWM值
-        OLED_ShowString(0,32,(uint8_t*)"PWM:",8,1);
-        OLED_ShowNum(50,32,pwm_value,4,8,1);
-        OLED_ShowString(90,32,(uint8_t*)"/1000",8,1);
-        
-        OLED_Refresh();
+        HAL_ADC_Start(&hadc1);
+        if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+        {
+            uint32_t adc_value = HAL_ADC_GetValue(&hadc1);
+            
+            // 根据光照值计算PWM占空比
+            // 光照值越大，LED越暗；光照值越小，LED越亮
+            uint32_t pwm_value = 1000 - (adc_value * 1000 / 4095);
+            if (pwm_value > 1000) pwm_value = 1000;
+            if (pwm_value < 0) pwm_value = 0;
+            
+            // 设置PWM占空比
+            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm_value);
+        }
+        HAL_ADC_Stop(&hadc1);
     }
-    HAL_ADC_Stop(&hadc1);
     
     // 1秒显示一次时间
     if(timer1_second_flag)
@@ -270,7 +310,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -285,12 +325,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
