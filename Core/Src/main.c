@@ -18,13 +18,17 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "oled.h"
 #include "HC_SR04.h"
+#include "delay.h"
+#include "esp8266.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,7 +71,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  uint8_t wifi_try = 0, mqtt_try = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -88,10 +92,25 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM2_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   HC_SR04_Init();
+	
+	  Delay_Init();
+	
+	  while (wifi_try < 5 && !ESP8266_ConnectWiFi())
+  {
+     // HAL_UART_Transmit(&huart3, (uint8_t*)"WiFi connect retry\r\n", 20, 100);
+      wifi_try++;
+      delay_ms(1000);
+  }
+	
+	if(wifi_try>5)
+		while(1);
+	
 	OLED_ShowString(0,0,(uint8_t*)"Distance:",8,1);
 	OLED_Refresh();
   /* USER CODE END 2 */
@@ -115,7 +134,7 @@ int main(void)
     }
     else
     {
-        OLED_ShowString(70,0,(uint8_t*)"Err",8,1);
+        //OLED_ShowString(70,0,(uint8_t*)"Err",8,1);
     }
     OLED_Refresh();
     HAL_Delay(1000);

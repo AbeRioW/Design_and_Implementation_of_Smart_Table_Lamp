@@ -27,4 +27,9 @@ design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: ../Drivers/STM32F1
 design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
+design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: ../Core/Inc/stm32f1xx_it.h
+design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: ../App/delay.h
+design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: ../App/esp8266.h
+design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\stdbool.h
+design_and_implementation_of_smart_table_lamp\stm32f1xx_it.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\string.h
