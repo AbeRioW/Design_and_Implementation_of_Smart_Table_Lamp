@@ -1,6 +1,6 @@
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ..\App\HC_SR04.c
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ..\App\HC_SR04.h
-design_and_implementation_of_smart_table_lamp\hc_sr04.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\stdint.h
+design_and_implementation_of_smart_table_lamp\hc_sr04.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Core/Inc/main.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Core/Inc/stm32f1xx_hal_conf.h
@@ -15,7 +15,7 @@ design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/CMSIS/Includ
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-design_and_implementation_of_smart_table_lamp\hc_sr04.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\stddef.h
+design_and_implementation_of_smart_table_lamp\hc_sr04.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h
@@ -30,3 +30,4 @@ design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HA
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Core/Inc/tim.h
+design_and_implementation_of_smart_table_lamp\hc_sr04.o: ..\App\delay.h

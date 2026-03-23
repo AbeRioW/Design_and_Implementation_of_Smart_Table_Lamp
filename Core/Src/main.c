@@ -95,6 +95,7 @@ int main(void)
   MX_DMA_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   HC_SR04_Init();
@@ -103,13 +104,38 @@ int main(void)
 	
 	  while (wifi_try < 5 && !ESP8266_ConnectWiFi())
   {
-     // HAL_UART_Transmit(&huart3, (uint8_t*)"WiFi connect retry\r\n", 20, 100);
+		 printf("WiFi connect retry\r\n");
       wifi_try++;
-      delay_ms(1000);
+      HAL_Delay(1000);
   }
 	
-	if(wifi_try>5)
-		while(1);
+	  //����
+	
+	while(mqtt_try<20&&!ESP8266_ConnectCloud())
+	{
+		 printf("ConnectCloud retry\r\n");
+      mqtt_try++;
+
+      delay_ms(2000);
+	}
+	
+	if(mqtt_try>20)
+	{
+							OLED_ShowString(0,0,(uint8_t*)"ConnectCloud failed",8,1);
+			OLED_Refresh();
+		  while(1);
+	}
+	 printf("ConnectCloud ok\r\n");
+		// ���ķ������Իظ����⣨OneNETҪ��
+	if(!ESP8266_MQTT_Subscribe(MQTT_TOPIC_POST_REPLY,1))
+	{
+		 printf("MQTT subscribe post_reply failed\r\n");
+		  OLED_Clear();
+			OLED_ShowString(0,0,(uint8_t*)"ConnectCloud failed",8,1);
+			OLED_Refresh();
+		  while(1);
+	}
+	
 	
 	OLED_ShowString(0,0,(uint8_t*)"Distance:",8,1);
 	OLED_Refresh();
@@ -122,6 +148,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		printf("go\r\n");
     float distance = HC_SR04_MeasureDistance();
     if(distance >= 0)
     {
@@ -137,7 +164,7 @@ int main(void)
         //OLED_ShowString(70,0,(uint8_t*)"Err",8,1);
     }
     OLED_Refresh();
-    HAL_Delay(1000);
+    delay_ms(1000);
   }
   /* USER CODE END 3 */
 }

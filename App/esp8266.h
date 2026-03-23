@@ -7,18 +7,25 @@
 #include <string.h>
 
 // WiFi配置信息,备注WIFI模块只能连接2.4G的网路
+#if 0
 #define WIFI_SSID       "jingda830"               // WiFi名称
 #define WIFI_PASSWORD   "jd717718"            // WiFi密码
+#else
+#define WIFI_SSID       "CMCC-402-2.4G-ext"               // WiFi名称
+#define WIFI_PASSWORD   "13851901825"            // WiFi密码
+#endif
 
 // MQTT三元组信息
-#define PRODUCT_ID      "d9abErbb9x"          // 产品ID
-#define DEVICE_NAME     "rtos"                // 设备名称
-#define MQTT_TOKEN      "version=2018-10-31&res=products%2Fd9abErbb9x%2Fdevices%2Frtos&et=2052985695&method=md5&sign=vlPCi1NzGQgUTMexFN6qYA%3D%3D"  // 设备token
+#define PRODUCT_ID      "dU5jVg1L9b"          // 产品ID
+#define DEVICE_NAME     "test"                // 设备名称
+#define MQTT_TOKEN      "version=2018-10-31&res=products%2FdU5jVg1L9b%2Fdevices%2Ftest&et=2810377042&method=md5&sign=1wRzfPZDjJ6ztNqWYY9lIg%3D%3D"  // 设备token
 
 // MQTT 主题宏定义
-#define MQTT_TOPIC_POST        "$sys/d9abErbb9x/rtos/thing/property/post"         // 发布属性主题
-#define MQTT_TOPIC_SET_REPLY   "$sys/d9abErbb9x/rtos/thing/property/set_reply"    // 回复设置主题
-#define MQTT_TOPIC_SET         "$sys/d9abErbb9x/rtos/thing/property/set"          // 订阅设置主题
+#define MQTT_TOPIC_POST        "$sys/dU5jVg1L9b/test/thing/property/post"         // 发布属性主题
+#define MQTT_TOPIC_POST_REPLY  "$sys/dU5jVg1L9b/test/thing/property/post/reply"   // 发布属性回复主题
+#define MQTT_TOPIC_SET_REPLY   "$sys/dU5jVg1L9b/test/thing/property/set_reply"    // 回复设置主题
+#define MQTT_TOPIC_SET         "$sys/dU5jVg1L9b/test/thing/property/set"          // 订阅设置主题
+
 
 // 接收状态定义
 #define REV_OK      1

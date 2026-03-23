@@ -1,6 +1,6 @@
 design_and_implementation_of_smart_table_lamp\oled.o: ..\App\oled.c
 design_and_implementation_of_smart_table_lamp\oled.o: ..\App\oled.h
-design_and_implementation_of_smart_table_lamp\oled.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\stdint.h
+design_and_implementation_of_smart_table_lamp\oled.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 design_and_implementation_of_smart_table_lamp\oled.o: ../Core/Inc/gpio.h
 design_and_implementation_of_smart_table_lamp\oled.o: ../Core/Inc/main.h
 design_and_implementation_of_smart_table_lamp\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
@@ -16,7 +16,7 @@ design_and_implementation_of_smart_table_lamp\oled.o: ../Drivers/CMSIS/Include/c
 design_and_implementation_of_smart_table_lamp\oled.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h
 design_and_implementation_of_smart_table_lamp\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
 design_and_implementation_of_smart_table_lamp\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-design_and_implementation_of_smart_table_lamp\oled.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\stddef.h
+design_and_implementation_of_smart_table_lamp\oled.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 design_and_implementation_of_smart_table_lamp\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
 design_and_implementation_of_smart_table_lamp\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
 design_and_implementation_of_smart_table_lamp\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h

@@ -1,4 +1,5 @@
 #include "HC_SR04.h"
+#include "delay.h"
 
 volatile uint32_t g_echo_start = 0;
 volatile uint32_t g_echo_end = 0;
@@ -6,6 +7,7 @@ volatile uint8_t g_echo_flag = 0;
 
 void HC_SR04_Init(void)
 {
+    HAL_TIM_Base_Start(&htim2);
     HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
 }
 
@@ -18,7 +20,7 @@ float HC_SR04_MeasureDistance(void)
     g_echo_flag = 0;
     
     TRIG_HIGH();
-    HAL_Delay(1);
+    delay_us(10);
     TRIG_LOW();
     
     while(g_echo_flag != 2)
