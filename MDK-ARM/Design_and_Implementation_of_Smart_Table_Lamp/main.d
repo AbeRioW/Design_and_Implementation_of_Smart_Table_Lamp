@@ -22,12 +22,15 @@ design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_D
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma_ex.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
+design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_adc.h
+design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_adc_ex.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+design_and_implementation_of_smart_table_lamp\main.o: ../Core/Inc/adc.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Core/Inc/dma.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Core/Inc/tim.h
 design_and_implementation_of_smart_table_lamp\main.o: ../Core/Inc/usart.h

@@ -23,6 +23,8 @@ design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HA
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma_ex.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
+design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_adc.h
+design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_adc_ex.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 design_and_implementation_of_smart_table_lamp\hc_sr04.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h

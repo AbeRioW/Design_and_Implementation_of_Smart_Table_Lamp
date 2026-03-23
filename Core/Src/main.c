@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dma.h"
 #include "tim.h"
 #include "usart.h"
@@ -30,6 +31,7 @@
 #include "delay.h"
 #include "esp8266.h"
 #include "ds1302.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,6 +101,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_TIM1_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   HC_SR04_Init();
@@ -108,6 +111,8 @@ int main(void)
   
   // 启动TIM1
   HAL_TIM_Base_Start_IT(&htim1);
+  // 启动TIM1 PWM
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   
   // 初始设置时间（2026-03-23 12:00:00）
   DS1302_Time init_time;
@@ -186,6 +191,35 @@ int main(void)
         //OLED_ShowString(70,0,(uint8_t*)"Err",8,1);
     }
     
+    // 读取ADC值（光照值）
+    HAL_ADC_Start(&hadc1);
+    if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+    {
+        uint32_t adc_value = HAL_ADC_GetValue(&hadc1);
+        
+        // 根据光照值计算PWM占空比
+        // 光照值越大，LED越暗；光照值越小，LED越亮
+        uint32_t pwm_value = 1000 - (adc_value * 1000 / 4095);
+        if (pwm_value > 1000) pwm_value = 1000;
+        if (pwm_value < 0) pwm_value = 0;
+        
+        // 设置PWM占空比
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm_value);
+        
+        // 在OLED上显示光照值
+        OLED_ShowString(0,24,(uint8_t*)"Light:",8,1);
+        OLED_ShowNum(50,24,adc_value,4,8,1);
+        OLED_ShowString(90,24,(uint8_t*)"/4095",8,1);
+        
+        // 显示PWM值
+        OLED_ShowString(0,32,(uint8_t*)"PWM:",8,1);
+        OLED_ShowNum(50,32,pwm_value,4,8,1);
+        OLED_ShowString(90,32,(uint8_t*)"/1000",8,1);
+        
+        OLED_Refresh();
+    }
+    HAL_ADC_Stop(&hadc1);
+    
     // 1秒显示一次时间
     if(timer1_second_flag)
     {
@@ -225,6 +259,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -235,7 +270,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -250,7 +285,13 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
