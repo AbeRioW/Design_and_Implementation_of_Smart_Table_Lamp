@@ -2,6 +2,7 @@
 #include "stm32f103xb.h"
 #include "usart.h"
 #include "delay.h"
+#include "tim.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -389,9 +390,9 @@ void ESP8266_ProcessMessages(void)
 {
     char local_buf[ESP8266_BUF_SIZE];
     uint16_t len = 0;
-
     len = (esp8266_cnt < ESP8266_BUF_SIZE - 1) ? esp8266_cnt : (ESP8266_BUF_SIZE - 1);
     if (len == 0) return;  
+	printf("hello\r\n");
     memcpy(local_buf, (const char*)esp8266_buf, len);
     // 清空计数以表示已消费（由主线程负责）
     esp8266_cnt = 0;
@@ -399,9 +400,7 @@ void ESP8266_ProcessMessages(void)
     local_buf[len] = '\0';
 
     // 调试打印收到的数据
-  //  HAL_UART_Transmit(&huart3, (uint8_t*)"--PROCESS RX: ", 14, 100);
-  //  HAL_UART_Transmit(&huart3, (uint8_t*)local_buf, strlen(local_buf), 500);
-  //  HAL_UART_Transmit(&huart3, (uint8_t*)"\r\n", 2, 100);
+    printf("--PROCESS RX: %s\r\n", local_buf);
 
     // 找到第一个 JSON 并提取完整 JSON（简单配对）
     char *p_json = strchr(local_buf, '{');
@@ -494,6 +493,49 @@ void ESP8266_ProcessMessages(void)
 
         //处理更多 params 字段可按需添加
         
+        // 处理 leds（亮度控制）
+        cJSON *leds = cJSON_GetObjectItem(params, "leds");
+        if (leds)
+        {
+            int brightness = -1;
+            if (cJSON_IsNumber(leds)) brightness = (int)cJSON_GetNumberValue(leds);
+            else if (cJSON_IsString(leds)) brightness = atoi(leds->valuestring);
+            else if (cJSON_IsObject(leds))
+            {
+                cJSON *v = cJSON_GetObjectItem(leds, "value");
+                if (v)
+                {
+                    if (cJSON_IsNumber(v)) brightness = (int)cJSON_GetNumberValue(v);
+                    else if (cJSON_IsString(v)) brightness = atoi(v->valuestring);
+                }
+            }
+            if (brightness >= 0 && brightness <= 2)
+            {
+                handled_any = true;
+                // 调控PWM亮度
+                uint32_t pwm_value = 0;
+                switch(brightness)
+                {
+                    case 0: // 最暗
+                        pwm_value = 0;
+                        break;
+                    case 1: // 中间亮度
+                        pwm_value = 500;
+                        break;
+                    case 2: // 最高亮度
+                        pwm_value = 1000;
+                        break;
+                }
+                // 设置PWM占空比
+                extern TIM_HandleTypeDef htim1;
+                __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm_value);
+                printf("LED brightness set to level %d (PWM: %lu)\r\n", brightness, (unsigned long)pwm_value);
+                
+                // 禁用自动调节，设置为手动模式
+                extern volatile uint8_t brightness_level;
+                brightness_level = brightness + 1; // 0→1, 1→2, 2→3
+            }
+        }
 
     }
 
@@ -517,13 +559,14 @@ void ESP8266_ProcessMessages(void)
         ESP8266_MQTT_Publish(MQTT_TOPIC_SET_REPLY, reply_payload, 0, 0); 
 
 
+    // 释放cJSON对象
+    cJSON_Delete(root);
+
     // 若没有任何字段被处理，可直接返回
     if (!handled_any)
     {
-        cJSON_Delete(root);
         return;
     }
-
 
 
 

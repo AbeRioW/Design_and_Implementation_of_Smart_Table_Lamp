@@ -216,7 +216,7 @@ int main(void)
 //  init_time.second = 0;
 //  DS1302_SetTime(&init_time);
   
-	#if 0
+	#if 1
   while (wifi_try < 5 && !ESP8266_ConnectWiFi())
   {
 		 printf("WiFi connect retry\r\n");
@@ -250,6 +250,13 @@ int main(void)
 			OLED_Refresh();
 		  while(1);
 	}
+	
+		if(!ESP8266_MQTT_Subscribe(MQTT_TOPIC_SET,0))
+	{
+		  //HAL_UART_Transmit(&huart2, (uint8_t*)"MQTT subscribe failed\r\n", 22, 100);
+		  while(1);
+	}
+	
 	#endif
 	
 	OLED_Clear();
@@ -266,6 +273,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		ESP8266_ProcessMessages();
     // Check if in time setting mode
     if(time_setting_mode)
     {
@@ -273,7 +281,7 @@ int main(void)
     }
     else
     {
-	printf("go\r\n");
+	//printf("go\r\n");
     float distance = HC_SR04_MeasureDistance();
     if(distance >= 0)
     {

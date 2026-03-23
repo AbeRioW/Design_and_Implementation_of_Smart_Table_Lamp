@@ -36,6 +36,7 @@ design_and_implementation_of_smart_table_lamp\esp8266.o: ../Core/Inc/usart.h
 design_and_implementation_of_smart_table_lamp\esp8266.o: ../Core/Inc/main.h
 design_and_implementation_of_smart_table_lamp\esp8266.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 design_and_implementation_of_smart_table_lamp\esp8266.o: ..\App\delay.h
+design_and_implementation_of_smart_table_lamp\esp8266.o: ../Core/Inc/tim.h
 design_and_implementation_of_smart_table_lamp\esp8266.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 design_and_implementation_of_smart_table_lamp\esp8266.o: ..\App\cJSON.h
 design_and_implementation_of_smart_table_lamp\esp8266.o: ../Core/Inc/gpio.h
