@@ -9,9 +9,9 @@
 		<!-- 运动控制区域 -->
 		<view class="move-controls">
 			<view class="move-buttons">
-				<button class="move-button" @click="move(5)">档位1</button>
-				<button class="move-button" @click="move(6)">档位2</button>
-				<button class="move-button" @click="move(7)">档位3</button>
+				<button class="move-button" @click="move(0)">档位1</button>
+				<button class="move-button" @click="move(1)">档位2</button>
+				<button class="move-button" @click="move(2)">档位3</button>
 			</view>
 
 		</view>
@@ -198,11 +198,35 @@
 			},
 			// 运动控制
 			move(action) {
-				const actions = ['前进', '左转', '停止', '右转', '后退', '避障模式', '循迹模式'];
+				const actions = ['档位1', '档位2', '档位3'];
 				this.currentAction = actions[action];
-				this.Car_flag = action;
-
-				this.uploadCarFlag();
+				
+				let ledsValue = 0;
+				if (action === 0) {
+					// 档位1发送leds:2
+					ledsValue = 2;
+				} else if (action === 1) {
+					// 档位2发送leds:1
+					ledsValue = 1;
+				} else {
+					// 档位3发送leds:0
+					ledsValue = 0;
+				}
+				
+				uni.request({
+					url: 'https://iot-api.heclouds.com/thingmodel/set-device-property',
+					method: 'POST',
+					data: {
+						product_id: product_id,
+						device_name: device_name,
+						params: {
+							"leds": ledsValue
+						}
+					},
+					header: {
+						'authorization': this.token
+					},
+				});
 			},
 
 			// 上传Car_flag

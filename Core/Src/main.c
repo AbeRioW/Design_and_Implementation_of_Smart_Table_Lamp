@@ -71,6 +71,13 @@ volatile uint8_t time_setting_mode = 0; // 0: normal mode, 1: time setting mode
 
 // Ultrasonic threshold variable
 volatile uint8_t ultrasonic_threshold = 5; // Default value (0-10)
+
+// HCSR505 and Beep control variables
+volatile uint8_t hcsr505_high_count = 0; // Counter for consecutive HCSR505 high level detections
+volatile uint8_t beep_active = 0; // Flag indicating if beep is active
+volatile uint32_t beep_start_time = 0; // Timestamp when beep was activated
+const uint8_t HCSR505_REQUIRED_COUNT = 5; // Required consecutive high level detections
+const uint32_t BEEP_DURATION = 5000; // Beep duration in milliseconds (5 seconds)
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -298,6 +305,40 @@ int main(void)
     else
     {
         //OLED_ShowString(70,0,(uint8_t*)"Err",8,1);
+    }
+    
+    // HCSR505 and Beep control logic
+    uint8_t hcsr505_state = HAL_GPIO_ReadPin(HC_SR505_GPIO_Port, HC_SR505_Pin);
+    
+    if(hcsr505_state == GPIO_PIN_SET)
+    {
+        hcsr505_high_count++;
+        if(hcsr505_high_count > HCSR505_REQUIRED_COUNT)
+        {
+            hcsr505_high_count = HCSR505_REQUIRED_COUNT;
+        }
+    }
+    else
+    {
+        hcsr505_high_count = 0;
+    }
+    
+    // Check if beep duration has elapsed
+    if(beep_active)
+    {
+        if(HAL_GetTick() - beep_start_time >= BEEP_DURATION)
+        {
+            HAL_GPIO_WritePin(BEEP_GPIO_Port, BEEP_Pin, GPIO_PIN_SET);
+            beep_active = 0;
+        }
+    }
+    
+    // Activate beep if conditions are met
+    if(hcsr505_high_count >= HCSR505_REQUIRED_COUNT && distance >= 0 && distance < ultrasonic_threshold && !beep_active)
+    {
+        HAL_GPIO_WritePin(BEEP_GPIO_Port, BEEP_Pin, GPIO_PIN_RESET);
+        beep_active = 1;
+        beep_start_time = HAL_GetTick();
     }
     
     // 读取ADC值（光照值）- 仅在自动模式下

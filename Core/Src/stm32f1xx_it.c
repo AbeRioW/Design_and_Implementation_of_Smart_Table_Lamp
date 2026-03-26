@@ -307,18 +307,9 @@ void EXTI15_10_IRQHandler(void)
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
 
   /* USER CODE END EXTI15_10_IRQn 0 */
-  if(__HAL_GPIO_EXTI_GET_IT(KEY1_Pin))
-  {
-    HAL_GPIO_EXTI_IRQHandler(KEY1_Pin);
-  }
-  if(__HAL_GPIO_EXTI_GET_IT(KEY2_Pin))
-  {
-    HAL_GPIO_EXTI_IRQHandler(KEY2_Pin);
-  }
-  if(__HAL_GPIO_EXTI_GET_IT(KEY3_Pin))
-  {
-    HAL_GPIO_EXTI_IRQHandler(KEY3_Pin);
-  }
+  HAL_GPIO_EXTI_IRQHandler(KEY1_Pin);
+  HAL_GPIO_EXTI_IRQHandler(KEY2_Pin);
+  HAL_GPIO_EXTI_IRQHandler(KEY3_Pin);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */
